@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Mia Dispensa</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F4EE;
+  --surface: #FFFFFF;
+  --surface2: #F0ECE4;
+  --border: #E0D9CE;
+  --border2: #C8BFB0;
+  --text: #2A2520;
+  --text2: #6B6158;
+  --text3: #9E9589;
+  --accent: #5C7A5A;
+  --accent-light: #EAF0E9;
+  --accent-text: #3D5C3B;
+  --warn: #8B5E2A;
+  --warn-light: #F5EDDE;
+  --danger: #8B3030;
+  --danger-light: #F5E5E5;
+  --info: #2A5080;
+  --info-light: #E5EEF5;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* LAYOUT */
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 10;
+  padding: 0;
+}
+.sidebar-brand {
+  padding: 1.5rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-brand h1 {
+  font-family: 'Lora', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.sidebar-brand p {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.sidebar-filters { padding: 1rem 1.25rem; flex: 1; overflow-y: auto; }
+.sidebar-filters h3 { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 8px; }
+.filter-group { margin-bottom: 1rem; }
+.main { margin-left: 260px; padding: 2rem; min-height: 100vh; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; gap: 12px; flex-wrap: wrap;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.stats-row { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.75rem 1rem; min-width: 140px; flex: 1;
+}
+.stat-card .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card .value { font-size: 22px; font-weight: 500; color: var(--text); margin-top: 2px; }
+
+/* ITEMS GRID */
+.items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.item-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  position: relative;
+}
+.item-card:hover { box-shadow: var(--shadow); border-color: var(--border2); }
+.item-card.low { border-left: 3px solid var(--warn); }
+.item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.item-name { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.item-brand { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.item-actions-top { display: flex; gap: 4px; flex-shrink: 0; }
+.item-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.chip {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500;
+}
+.chip-cat { background: var(--info-light); color: var(--info); }
+.chip-qty { font-size: 13px; font-weight: 500; background: var(--accent-light); color: var(--accent-text); padding: 3px 10px; }
+.chip-qty.low { background: var(--warn-light); color: var(--warn); }
+.chip-pkg { background: var(--surface2); color: var(--text2); }
+.item-note { font-size: 12px; color: var(--text3); font-style: italic; margin-bottom: 10px; line-height: 1.4; }
+.item-footer {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+
+/* BUTTONS */
+button, .btn { font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.12s; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px; border-radius: var(--radius); border: 1px solid var(--border2);
+  background: var(--surface); color: var(--text); font-size: 13px; font-weight: 400;
+}
+.btn:hover { background: var(--surface2); border-color: var(--border2); }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+.btn-primary:hover { opacity: 0.85; background: var(--text); }
+.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-accent:hover { opacity: 0.88; }
+.btn-danger { color: var(--danger); border-color: transparent; background: transparent; }
+.btn-danger:hover { background: var(--danger-light); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-icon { padding: 5px 8px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); color: var(--text2); }
+.btn-icon:hover { background: var(--surface2); color: var(--text); }
+
+/* FORMS */
+input, select, textarea {
+  width: 100%; padding: 8px 11px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--surface); color: var(--text);
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(92,122,90,0.12);
+}
+textarea { resize: vertical; min-height: 65px; }
+label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px; letter-spacing: 0.3px; text-transform: uppercase; font-weight: 500; }
+.form-row { margin-bottom: 14px; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.form-section { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.form-section:last-of-type { border-bottom: none; }
+.form-section-title { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 12px; }
+
+/* MODAL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(42,37,32,0.5);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 20px; z-index: 100; overflow-y: auto;
+  backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border-radius: var(--radius-lg);
+  border: 1px solid var(--border); padding: 2rem;
+  width: 100%; max-width: 520px; margin: auto;
+  transform: translateY(8px); transition: transform 0.2s;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+}
+.overlay.open .modal { transform: translateY(0); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.modal-header h2 { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+
+/* CONSUME MODAL */
+.consume-toggle { display: flex; border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.consume-toggle button { flex: 1; padding: 8px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text2); transition: all 0.12s; }
+.consume-toggle button.active { background: var(--text); color: var(--surface); }
+
+/* MISC */
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text3); }
+.empty-state .icon { font-size: 48px; margin-bottom: 1rem; opacity: 0.4; }
+.empty-state p { font-size: 15px; margin-bottom: 0.5rem; color: var(--text2); }
+.empty-state small { font-size: 13px; }
+.sort-btn { font-size: 12px; color: var(--text3); }
+.sort-btn.active { color: var(--accent); font-weight: 500; }
+.results-info { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+.tag-input-wrapper { position: relative; }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 1rem; }
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+  .items-grid { grid-template-columns: 1fr; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.alert {
+  padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 14px;
+  border: 1px solid;
+}
+.alert-warn { background: var(--warn-light); color: var(--warn); border-color: #D4A87A; }
+.alert-success { background: var(--accent-light); color: var(--accent-text); border-color: #9DC29B; }
+
+.version-badge { font-size: 10px; color: var(--text3); padding: 1rem 1.25rem 0.5rem; border-top: 1px solid var(--border); margin-top: auto; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>La Mia Dispensa</h1>
+      <p>Gestione scorte alimentari</p>
+    </div>
+    <div class="sidebar-filters">
+      <div class="filter-group">
+        <h3>Cerca</h3>
+        <input type="search" id="f-nome" placeholder="Nome prodotto..." oninput="renderItems()">
+      </div>
+      <div class="filter-group">
+        <h3>Categoria</h3>
+        <select id="f-cat" onchange="renderItems()">
+          <option value="">Tutte</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <h3>Marca</h3>
+        <input type="search" id="f-marca" placeholder="Filtra per marca..." oninput="renderItems()">
+      </div>
+      <div class="filter-group">
+        <h3>Stato scorte</h3>
+        <select id="f-stato" onchange="renderItems()">
+          <option value="">Tutti</option>
+          <option value="ok">Disponibili</option>
+          <option value="low">Scorte basse</option>
+          <option value="empty">Esauriti</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <h3>Ordine</h3>
+        <select id="f-sort" onchange="renderItems()">
+          <option value="ins">Ordine inserimento</option>
+          <option value="az">Nome A→Z</option>
+          <option value="za">Nome Z→A</option>
+          <option value="qty-asc">Quantità crescente</option>
+          <option value="qty-desc">Quantità decrescente</option>
+        </select>
+      </div>
+    </div>
+    <div class="version-badge" style="display:flex;flex-direction:column;gap:6px">
+      <div>v1.1 · dati salvati localmente</div>
+      <button class="btn btn-sm" onclick="exportData()" style="width:100%;justify-content:center">⬇ Esporta backup</button>
+      <button class="btn btn-sm" onclick="document.getElementById('import-input').click()" style="width:100%;justify-content:center">⬆ Importa backup</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)">
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2 style="font-family:'Lora',serif;font-size:18px;font-weight:600;" id="page-title">Tutti gli articoli</h2>
+      </div>
+      <button class="btn btn-primary" onclick="openAdd()">+ Aggiungi articolo</button>
+    </div>
+
+    <div class="stats-row" id="stats-row"></div>
+    <div class="results-info" id="results-info"></div>
+    <div class="items-grid" id="items-list"></div>
+  </main>
+</div>
+
+<!-- MODAL: AGGIUNGI -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="add-modal-title">Nuovo articolo</h2>
+      <button class="btn-icon" onclick="closeModal('modal-add')">✕</button>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Informazioni prodotto</div>
+      <div class="form-row"><label>Nome prodotto *</label><input id="a-name" placeholder="es. Pasta al Riso Integrale"></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Marca</label><input id="a-brand" placeholder="es. Barilla"></div>
+        <div class="form-row"><label>Categoria</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="a-cat" style="flex:1"></select>
+            <button class="btn-icon" title="Nuova categoria" onclick="addNewCategory('a-cat')" style="flex-shrink:0;padding:6px 9px;font-size:15px">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row"><label>Note</label><textarea id="a-notes" placeholder="Annotazioni, scadenze, suggerimenti..."></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Confezione</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end">
+        <div class="form-row" style="margin-bottom:0"><label>Tipo confezione</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="a-pkg" style="flex:1"></select>
+            <button class="btn-icon" title="Nuovo tipo" onclick="addNewPkg('a-pkg')" style="flex-shrink:0;padding:6px 9px;font-size:15px">+</button>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:0"><label>Quantità per confezione *</label><input id="a-qty-per" type="number" min="0.01" step="0.01" placeholder="es. 500"></div>
+        <div class="form-row" style="margin-bottom:0"><label>Unità di misura</label><select id="a-unit"></select></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Scorte iniziali</div>
+      <div class="form-grid-2">
+        <div class="form-row"><label id="a-count-label">Numero confezioni</label><input id="a-count" type="number" min="0" step="1" placeholder="es. 3"></div>
+        <div class="form-row"><label id="a-loose-label">Quantità sfusa aggiuntiva (g)</label><input id="a-loose" type="number" min="0" step="0.01" placeholder="es. 130 (opz.)"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveAdd()">Salva articolo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MODIFICA -->
+<div class="overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Modifica articolo</h2>
+      <button class="btn-icon" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Informazioni prodotto</div>
+      <div class="form-row"><label>Nome prodotto *</label><input id="e-name"></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Marca</label><input id="e-brand"></div>
+        <div class="form-row"><label>Categoria</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="e-cat" style="flex:1"></select>
+            <button class="btn-icon" title="Nuova categoria" onclick="addNewCategory('e-cat')" style="flex-shrink:0;padding:6px 9px;font-size:15px">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row"><label>Note</label><textarea id="e-notes"></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Confezione</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end">
+        <div class="form-row" style="margin-bottom:0"><label>Tipo confezione</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="e-pkg" style="flex:1"></select>
+            <button class="btn-icon" title="Nuovo tipo" onclick="addNewPkg('e-pkg')" style="flex-shrink:0;padding:6px 9px;font-size:15px">+</button>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:0"><label>Quantità per confezione</label><input id="e-qty-per" type="number" min="0.01" step="0.01"></div>
+        <div class="form-row" style="margin-bottom:0"><label>Unità di misura</label><select id="e-unit"></select></div>
+      </div>
+      <div id="e-qty-warn" class="alert alert-warn" style="display:none;margin-top:12px">
+        Modificando la quantità per confezione, il totale verrà ricalcolato proporzionalmente.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-edit')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Salva modifiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONSUMA -->
+<div class="overlay" id="modal-consume">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Registra consumo</h2>
+      <button class="btn-icon" onclick="closeModal('modal-consume')">✕</button>
+    </div>
+    <div id="consume-product-info" style="margin-bottom:1rem;padding:10px 14px;background:var(--surface2);border-radius:var(--radius);font-size:13px;"></div>
+    <div class="consume-toggle">
+      <button id="ct-qty" class="active" onclick="setConsumeMode('qty')">Per quantità</button>
+      <button id="ct-pkg" onclick="setConsumeMode('pkg')">Per confezioni</button>
+    </div>
+    <div id="consume-qty-row" class="form-row">
+      <label id="consume-qty-label">Quantità consumata (g)</label>
+      <input id="consume-qty-val" type="number" min="0.01" step="0.01" placeholder="es. 80">
+    </div>
+    <div id="consume-pkg-row" class="form-row" style="display:none">
+      <label id="consume-pkg-label">Numero confezioni consumate</label>
+      <input id="consume-pkg-val" type="number" min="0.01" step="0.01" placeholder="es. 1">
+    </div>
+    <div id="consume-preview" style="font-size:13px;color:var(--text2);margin-top:8px;"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-consume')">Annulla</button>
+      <button class="btn btn-accent" onclick="saveConsume()">Registra</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AGGIUNGI SCORTE -->
+<div class="overlay" id="modal-addqty">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Aggiungi scorte</h2>
+      <button class="btn-icon" onclick="closeModal('modal-addqty')">✕</button>
+    </div>
+    <div id="addqty-product-info" style="margin-bottom:1rem;padding:10px 14px;background:var(--surface2);border-radius:var(--radius);font-size:13px;"></div>
+    <div class="consume-toggle">
+      <button id="aqt-pkg" class="active" onclick="setAddQtyMode('pkg')">Per confezioni</button>
+      <button id="aqt-qty" onclick="setAddQtyMode('qty')">Quantità sfusa</button>
+    </div>
+    <div id="addqty-pkg-row" class="form-row">
+      <label id="addqty-pkg-label">Numero confezioni da aggiungere</label>
+      <input id="addqty-pkg-val" type="number" min="0" step="1" placeholder="es. 2">
+    </div>
+    <div id="addqty-qty-row" class="form-row" style="display:none">
+      <label id="addqty-qty-label">Quantità sfusa da aggiungere (g)</label>
+      <input id="addqty-qty-val" type="number" min="0" step="0.01" placeholder="es. 130">
+    </div>
+    <div id="addqty-preview" style="font-size:13px;color:var(--text2);margin-top:8px;"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-addqty')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveAddQty()">Aggiungi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────
+const SCHEMA_VERSION = 2;
+const STORE_KEY = 'dispensa_v1';
+
+const DEFAULT_CATS = [
+  'Altro','Bevande','Carne e Pesce','Cereali e Muesli','Conserve e Sottolio',
+  'Dolci e Snack','Farine e Lieviti','Frutta e Verdura','Latticini','Legumi',
+  'Olio e Aceto','Pasta e Riso','Prodotti per la Casa','Salse e Condimenti',
+  'Spezie ed Erbe','Surgelati'
+];
+
+const DEFAULT_PKGS = [
+  {v:'altro',p:'confezioni'},{v:'barattolo',p:'barattoli'},{v:'bottiglia',p:'bottiglie'},
+  {v:'busta',p:'buste'},{v:'cartone',p:'cartoni'},{v:'confezione',p:'confezioni'},
+  {v:'flacone',p:'flaconi'},{v:'lattina',p:'lattine'},{v:'pezzo',p:'pezzi'},
+  {v:'sacchetto',p:'sacchetti'},{v:'scatola',p:'scatole'},{v:'tubetto',p:'tubetti'},
+  {v:'vasetto',p:'vasetti'}
+];
+
+// Units in logical order: g → hg → kg, ml → cl → dl → l, pz
+const DEFAULT_UNITS = [
+  {v:'g',l:'grammi (g)'},{v:'etti',l:'etti (hg)'},{v:'kg',l:'chilogrammi (kg)'},
+  {v:'ml',l:'millilitri (ml)'},{v:'cl',l:'centilitri (cl)'},{v:'l',l:'litri (l)'},
+  {v:'pz',l:'pezzi'}
+];
+
+let CATS = [...DEFAULT_CATS];
+let PKGS = [...DEFAULT_PKGS];
+let UNITS = [...DEFAULT_UNITS];
+let customCats = [];
+let customPkgs = [];
+
+let items = [];
+let editingId = null;
+let consumingId = null;
+let addingQtyId = null;
+let consumeMode = 'qty';
+let addQtyMode = 'pkg';
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      customCats = d.customCats || [];
+      customPkgs = d.customPkgs || [];
+      rebuildLists();
+      items = migrate(d.items || []);
+    }
+  } catch(e) { items = []; }
+}
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify({
+    version: SCHEMA_VERSION, items, customCats, customPkgs
+  }));
+}
+
+function rebuildLists() {
+  CATS = [...new Set([...DEFAULT_CATS, ...customCats])].sort((a,b) => a.localeCompare(b,'it'));
+  const allPkgs = [...DEFAULT_PKGS];
+  customPkgs.forEach(cp => { if (!allPkgs.find(p => p.v === cp.v)) allPkgs.push(cp); });
+  PKGS = allPkgs.sort((a,b) => a.v.localeCompare(b.v,'it'));
+}
+
+function migrate(arr) {
+  return arr.map(it => {
+    if (!it.id) it.id = uid();
+    if (it.totalQty === undefined) it.totalQty = (it.count||0)*(it.qtyPer||0)+(it.loose||0);
+    if (!it.pkg) it.pkg = 'scatola';
+    if (!it.unit) it.unit = 'g';
+    if (!it.notes) it.notes = '';
+    if (!it.brand) it.brand = '';
+    if (!it.category) it.category = 'Altro';
+    if (!it.insertedAt) it.insertedAt = Date.now();
+    return it;
+  });
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+// ─── EXPORT / IMPORT ────────────────────────────────────────────────────
+function exportData() {
+  const data = { version: SCHEMA_VERSION, exportedAt: new Date().toISOString(), items, customCats, customPkgs };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `dispensa_backup_${date}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d.items) { alert('File non valido: manca la lista articoli.'); return; }
+      if (!confirm(`Importare ${d.items.length} articoli? I dati attuali verranno sostituiti.`)) return;
+      customCats = d.customCats || [];
+      customPkgs = d.customPkgs || [];
+      rebuildLists();
+      items = migrate(d.items);
+      save();
+      populateSelects();
+      renderItems();
+      alert('Importazione completata!');
+    } catch(err) { alert('Errore nel file: ' + err.message); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ─── ADD CUSTOM CATEGORY / PKG ──────────────────────────────────────────
+function addNewCategory(selectId) {
+  const name = prompt('Nome della nuova categoria:');
+  if (!name || !name.trim()) return;
+  const n = name.trim();
+  if (CATS.includes(n)) { alert('Categoria già esistente.'); return; }
+  customCats.push(n);
+  rebuildLists();
+  save();
+  populateSelects();
+  // select newly added value in the target select
+  setTimeout(() => { document.getElementById(selectId).value = n; }, 10);
+}
+
+function addNewPkg(selectId) {
+  const sing = prompt('Nome singolare del tipo di confezione (es. "sacca"):');
+  if (!sing || !sing.trim()) return;
+  const s = sing.trim().toLowerCase();
+  if (PKGS.find(p => p.v === s)) { alert('Tipo già esistente.'); return; }
+  const plur = prompt(`Forma plurale di "${s}" (es. "sacche"):`);
+  if (!plur || !plur.trim()) return;
+  const p = plur.trim().toLowerCase();
+  customPkgs.push({ v: s, p });
+  rebuildLists();
+  save();
+  populateSelects();
+  setTimeout(() => { document.getElementById(selectId).value = s; }, 10);
+}
+
+// ─── FORMAT ──────────────────────────────────────────────────────────────
+function fmtQty(qty, unit) {
+  qty = +qty || 0;
+  if (unit === 'g') {
+    if (qty >= 1000) {
+      const kg = Math.floor(qty / 1000);
+      const g = Math.round(qty % 1000);
+      return g > 0 ? `${kg} kg ${g} g` : `${kg} kg`;
+    }
+    return `${round2(qty)} g`;
+  }
+  if (unit === 'ml') {
+    if (qty >= 1000) {
+      const l = Math.floor(qty / 1000);
+      const ml = Math.round(qty % 1000);
+      return ml > 0 ? `${l} l ${ml} ml` : `${l} l`;
+    }
+    return `${round2(qty)} ml`;
+  }
+  if (unit === 'cl') {
+    if (qty >= 100) {
+      const l = Math.floor(qty / 100);
+      const cl = Math.round(qty % 100);
+      return cl > 0 ? `${l} l ${cl} cl` : `${l} l`;
+    }
+    return `${round2(qty)} cl`;
+  }
+  if (unit === 'etti' && qty >= 10) {
+    const kg = Math.floor(qty / 10);
+    const et = Math.round(qty % 10);
+    return et > 0 ? `${kg} kg ${et} etti` : `${kg} kg`;
+  }
+  return `${round2(qty)} ${unit}`;
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+
+function pkgStr(pkg, count) {
+  if (!count || count <= 0) return '';
+  const def = PKGS.find(p => p.v === pkg) || { v: pkg, p: pkg };
+  const label = count === 1 ? def.v : def.p;
+  const n = round2(count);
+  return `${n} ${label}`;
+}
+
+function pkgCount(it) {
+  if (!it.qtyPer || it.qtyPer <= 0) return 0;
+  return it.totalQty / it.qtyPer;
+}
+
+function isLow(it) { return it.totalQty > 0 && it.totalQty < it.qtyPer; }
+function isEmpty(it) { return it.totalQty <= 0; }
+
+// ─── POPULATE SELECTS ────────────────────────────────────────────────────
+function populateSelects() {
+  const catOpts = CATS.map(c => `<option value="${c}">${c}</option>`).join('');
+  const pkgOpts = PKGS.map(p => `<option value="${p.v}">${p.v.charAt(0).toUpperCase()+p.v.slice(1)}</option>`).join('');
+  const unitOpts = UNITS.map(u => `<option value="${u.v}">${u.l}</option>`).join('');
+
+  ['a-cat','e-cat'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = catOpts; });
+  ['a-pkg','e-pkg'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = pkgOpts; });
+  ['a-unit','e-unit'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = unitOpts; });
+
+  const fCat = document.getElementById('f-cat');
+  const prev = fCat.value;
+  fCat.innerHTML = '<option value="">Tutte le categorie</option>' + CATS.map(c => `<option value="${c}">${c}</option>`).join('');
+  fCat.value = prev;
+
+  document.getElementById('a-unit').addEventListener('change', function() {
+    document.getElementById('a-loose-label').textContent = `Quantità sfusa aggiuntiva (${this.value})`;
+  });
+
+  document.getElementById('e-qty-per').addEventListener('input', function() {
+    const w = document.getElementById('e-qty-warn');
+    if (editingId) {
+      const it = items.find(i => i.id === editingId);
+      w.style.display = it && parseFloat(this.value) !== it.qtyPer ? 'block' : 'none';
+    }
+  });
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────
+function getFiltered() {
+  const nome  = (document.getElementById('f-nome').value||'').toLowerCase();
+  const cat   = document.getElementById('f-cat').value;
+  const marc  = (document.getElementById('f-marca').value||'').toLowerCase();
+  const stato = document.getElementById('f-stato').value;
+  const sort  = document.getElementById('f-sort').value;
+
+  let arr = items.filter(it => {
+    if (nome && !it.name.toLowerCase().includes(nome)) return false;
+    if (cat && it.category !== cat) return false;
+    if (marc && !(it.brand||'').toLowerCase().includes(marc)) return false;
+    if (stato === 'empty' && !isEmpty(it)) return false;
+    if (stato === 'low'   && !isLow(it))   return false;
+    if (stato === 'ok'    && (isLow(it) || isEmpty(it))) return false;
+    return true;
+  });
+
+  if (sort === 'az') arr.sort((a,b) => a.name.localeCompare(b.name,'it'));
+  else if (sort === 'za') arr.sort((a,b) => b.name.localeCompare(a.name,'it'));
+  else if (sort === 'qty-asc') arr.sort((a,b) => a.totalQty - b.totalQty);
+  else if (sort === 'qty-desc') arr.sort((a,b) => b.totalQty - a.totalQty);
+
+  return arr;
+}
+
+function renderStats() {
+  const total = items.length;
+  const low   = items.filter(isLow).length;
+  const empty = items.filter(isEmpty).length;
+  const stato = document.getElementById('f-stato').value;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card" style="cursor:pointer;${stato===''?'border-color:var(--border2)':''}" onclick="setStato('')">
+      <div class="label">Articoli totali</div><div class="value">${total}</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;${stato==='low'?'border-color:var(--warn)':''}" onclick="setStato('low')">
+      <div class="label">Scorte basse</div>
+      <div class="value" style="color:${low>0?'var(--warn)':'var(--text)'}">${low}</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;${stato==='empty'?'border-color:var(--danger)':''}" onclick="setStato('empty')">
+      <div class="label">Esauriti</div>
+      <div class="value" style="color:${empty>0?'var(--danger)':'var(--text)'}">${empty}</div>
+    </div>
+  `;
+}
+
+function setStato(val) {
+  const sel = document.getElementById('f-stato');
+  sel.value = (sel.value === val && val !== '') ? '' : val;
+  renderItems();
+}
+
+function renderItems() {
+  const filtered = getFiltered();
+  const statoFiltro = document.getElementById('f-stato').value;
+  const isFiltered = filtered.length !== items.length || statoFiltro;
+  document.getElementById('results-info').textContent =
+    !isFiltered
+      ? `${items.length} ${items.length === 1 ? 'articolo' : 'articoli'}`
+      : `${filtered.length} di ${items.length} ${items.length === 1 ? 'articolo' : 'articoli'}`;
+
+  renderStats();
+
+  const list = document.getElementById('items-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">🫙</div>
+      <p>${items.length === 0 ? 'La dispensa è vuota.' : 'Nessun risultato trovato.'}</p>
+      <small>${items.length === 0 ? 'Aggiungi il primo articolo con il pulsante in alto.' : 'Prova a modificare i filtri.'}</small>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(it => {
+    const qty = fmtQty(it.totalQty, it.unit);
+    const pc = pkgCount(it);
+    const ps = pkgStr(it.pkg, pc);
+    const low = isLow(it);
+    const empty = isEmpty(it);
+    const statusClass = empty ? 'low' : low ? 'low' : '';
+    return `<div class="item-card ${statusClass}">
+      <div class="item-header">
+        <div>
+          <div class="item-name">${esc(it.name)}</div>
+          ${it.brand ? `<div class="item-brand">${esc(it.brand)}</div>` : ''}
+        </div>
+        <div class="item-actions-top">
+          <button class="btn-icon btn-sm" title="Modifica" onclick="openEdit('${it.id}')">✎</button>
+          <button class="btn-icon btn-sm btn-danger" title="Elimina" onclick="deleteItem('${it.id}')">✕</button>
+        </div>
+      </div>
+      <div class="item-meta">
+        <span class="chip chip-cat">${esc(it.category)}</span>
+        <span class="chip chip-qty ${low||empty?'low':''}">${qty}</span>
+        ${ps ? `<span class="chip chip-pkg">${ps}</span>` : ''}
+      </div>
+      ${it.notes ? `<div class="item-note">${esc(it.notes)}</div>` : ''}
+      <div class="item-footer">
+        <button class="btn btn-sm" onclick="openAddQty('${it.id}')">+ Aggiungi</button>
+        <button class="btn btn-sm" onclick="openConsume('${it.id}')" ${empty?'disabled':''}>– Consuma</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── MODAL OPEN/CLOSE ────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ─── ADD ─────────────────────────────────────────────────────────────────
+function openAdd() {
+  ['a-name','a-brand','a-notes'].forEach(id => document.getElementById(id).value = '');
+  ['a-count','a-loose','a-qty-per'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('a-cat').value = 'Altro';
+  document.getElementById('a-unit').value = 'g';
+  document.getElementById('a-pkg').value = 'scatola';
+  document.getElementById('a-loose-label').textContent = 'Quantità sfusa aggiuntiva (g)';
+  document.getElementById('add-modal-title').textContent = 'Nuovo articolo';
+  openModal('modal-add');
+  setTimeout(() => document.getElementById('a-name').focus(), 50);
+}
+
+function saveAdd() {
+  const name    = document.getElementById('a-name').value.trim();
+  const brand   = document.getElementById('a-brand').value.trim();
+  const cat     = document.getElementById('a-cat').value;
+  const pkg     = document.getElementById('a-pkg').value;
+  const qtyPer  = parseFloat(document.getElementById('a-qty-per').value) || 0;
+  const unit    = document.getElementById('a-unit').value;
+  const count   = parseFloat(document.getElementById('a-count').value) || 0;
+  const loose   = parseFloat(document.getElementById('a-loose').value) || 0;
+  const notes   = document.getElementById('a-notes').value.trim();
+
+  if (!name) { alert('Inserisci il nome del prodotto.'); return; }
+  if (qtyPer <= 0) { alert('Inserisci la quantità per confezione.'); return; }
+
+  items.push({
+    id: uid(), name, brand, category: cat, pkg, qtyPer, unit,
+    totalQty: count * qtyPer + loose, notes, insertedAt: Date.now()
+  });
+  save();
+  closeModal('modal-add');
+  renderItems();
+}
+
+// ─── EDIT ────────────────────────────────────────────────────────────────
+function openEdit(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  editingId = id;
+  document.getElementById('e-name').value    = it.name;
+  document.getElementById('e-brand').value   = it.brand || '';
+  document.getElementById('e-cat').value     = it.category || 'Altro';
+  document.getElementById('e-qty-per').value = it.qtyPer;
+  document.getElementById('e-unit').value    = it.unit || 'g';
+  document.getElementById('e-pkg').value     = it.pkg || 'scatola';
+  document.getElementById('e-notes').value   = it.notes || '';
+  document.getElementById('e-qty-warn').style.display = 'none';
+  openModal('modal-edit');
+}
+
+function saveEdit() {
+  const it = items.find(i => i.id === editingId);
+  if (!it) return;
+  const name = document.getElementById('e-name').value.trim();
+  if (!name) { alert('Il nome non può essere vuoto.'); return; }
+  const newQtyPer = parseFloat(document.getElementById('e-qty-per').value) || it.qtyPer;
+  if (newQtyPer !== it.qtyPer && it.qtyPer > 0) {
+    it.totalQty = it.totalQty * (newQtyPer / it.qtyPer);
+  }
+  it.name     = name;
+  it.brand    = document.getElementById('e-brand').value.trim();
+  it.category = document.getElementById('e-cat').value;
+  it.qtyPer   = newQtyPer;
+  it.unit     = document.getElementById('e-unit').value;
+  it.pkg      = document.getElementById('e-pkg').value;
+  it.notes    = document.getElementById('e-notes').value.trim();
+  save();
+  closeModal('modal-edit');
+  renderItems();
+}
+
+// ─── DELETE ──────────────────────────────────────────────────────────────
+function deleteItem(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  if (!confirm(`Eliminare "${it.name}" dalla dispensa?`)) return;
+  items = items.filter(i => i.id !== id);
+  save();
+  renderItems();
+}
+
+// ─── CONSUME ────────────────────────────────────────────────────────────
+function openConsume(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  consumingId = id;
+  consumeMode = 'qty';
+  document.getElementById('consume-product-info').innerHTML =
+    `<strong>${esc(it.name)}</strong> — disponibile: <strong>${fmtQty(it.totalQty, it.unit)}</strong>`;
+  document.getElementById('consume-qty-label').textContent = `Quantità consumata (${it.unit})`;
+  document.getElementById('consume-pkg-label').textContent = `Numero ${PKGS.find(p=>p.v===it.pkg)?.p||it.pkg} consumate`;
+  document.getElementById('consume-qty-val').value = '';
+  document.getElementById('consume-pkg-val').value = '';
+  document.getElementById('consume-preview').textContent = '';
+  document.getElementById('ct-qty').classList.add('active');
+  document.getElementById('ct-pkg').classList.remove('active');
+  document.getElementById('consume-qty-row').style.display = 'block';
+  document.getElementById('consume-pkg-row').style.display = 'none';
+
+  ['consume-qty-val','consume-pkg-val'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateConsumePreview);
+  });
+
+  openModal('modal-consume');
+}
+
+function setConsumeMode(mode) {
+  consumeMode = mode;
+  document.getElementById('ct-qty').classList.toggle('active', mode === 'qty');
+  document.getElementById('ct-pkg').classList.toggle('active', mode === 'pkg');
+  document.getElementById('consume-qty-row').style.display = mode === 'qty' ? 'block' : 'none';
+  document.getElementById('consume-pkg-row').style.display = mode === 'pkg' ? 'block' : 'none';
+  updateConsumePreview();
+}
+
+function updateConsumePreview() {
+  const it = items.find(i => i.id === consumingId);
+  if (!it) return;
+  let consumed = 0;
+  if (consumeMode === 'qty') consumed = parseFloat(document.getElementById('consume-qty-val').value) || 0;
+  else consumed = (parseFloat(document.getElementById('consume-pkg-val').value)||0) * it.qtyPer;
+  const remaining = it.totalQty - consumed;
+  const prev = document.getElementById('consume-preview');
+  if (consumed > 0) {
+    prev.textContent = remaining >= 0
+      ? `Rimanenza: ${fmtQty(remaining, it.unit)}`
+      : `Attenzione: supera la quantità disponibile.`;
+    prev.style.color = remaining < 0 ? 'var(--danger)' : 'var(--text2)';
+  } else {
+    prev.textContent = '';
+  }
+}
+
+function saveConsume() {
+  const it = items.find(i => i.id === consumingId);
+  if (!it) return;
+  let consumed = 0;
+  if (consumeMode === 'qty') consumed = parseFloat(document.getElementById('consume-qty-val').value) || 0;
+  else consumed = (parseFloat(document.getElementById('consume-pkg-val').value)||0) * it.qtyPer;
+  if (consumed <= 0) { alert('Inserisci una quantità valida.'); return; }
+  if (consumed > it.totalQty) { alert('Non hai abbastanza scorte!'); return; }
+  it.totalQty = round2(it.totalQty - consumed);
+  save();
+  closeModal('modal-consume');
+  renderItems();
+}
+
+// ─── ADD QTY ────────────────────────────────────────────────────────────
+function openAddQty(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  addingQtyId = id;
+  addQtyMode = 'pkg';
+  document.getElementById('addqty-product-info').innerHTML =
+    `<strong>${esc(it.name)}</strong> — attuale: <strong>${fmtQty(it.totalQty, it.unit)}</strong>`;
+  document.getElementById('addqty-pkg-label').textContent = `Numero ${PKGS.find(p=>p.v===it.pkg)?.p||it.pkg} da aggiungere`;
+  document.getElementById('addqty-qty-label').textContent = `Quantità sfusa da aggiungere (${it.unit})`;
+  document.getElementById('addqty-pkg-val').value = '';
+  document.getElementById('addqty-qty-val').value = '';
+  document.getElementById('addqty-preview').textContent = '';
+  document.getElementById('aqt-pkg').classList.add('active');
+  document.getElementById('aqt-qty').classList.remove('active');
+  document.getElementById('addqty-pkg-row').style.display = 'block';
+  document.getElementById('addqty-qty-row').style.display = 'none';
+
+  ['addqty-pkg-val','addqty-qty-val'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateAddQtyPreview);
+  });
+
+  openModal('modal-addqty');
+}
+
+function setAddQtyMode(mode) {
+  addQtyMode = mode;
+  document.getElementById('aqt-pkg').classList.toggle('active', mode === 'pkg');
+  document.getElementById('aqt-qty').classList.toggle('active', mode === 'qty');
+  document.getElementById('addqty-pkg-row').style.display = mode === 'pkg' ? 'block' : 'none';
+  document.getElementById('addqty-qty-row').style.display = mode === 'qty' ? 'block' : 'none';
+  updateAddQtyPreview();
+}
+
+function updateAddQtyPreview() {
+  const it = items.find(i => i.id === addingQtyId);
+  if (!it) return;
+  let added = 0;
+  if (addQtyMode === 'pkg') added = (parseFloat(document.getElementById('addqty-pkg-val').value)||0) * it.qtyPer;
+  else added = parseFloat(document.getElementById('addqty-qty-val').value) || 0;
+  const prev = document.getElementById('addqty-preview');
+  if (added > 0) {
+    prev.textContent = `Nuovo totale: ${fmtQty(it.totalQty + added, it.unit)}`;
+  } else {
+    prev.textContent = '';
+  }
+}
+
+function saveAddQty() {
+  const it = items.find(i => i.id === addingQtyId);
+  if (!it) return;
+  let added = 0;
+  if (addQtyMode === 'pkg') added = (parseFloat(document.getElementById('addqty-pkg-val').value)||0) * it.qtyPer;
+  else added = parseFloat(document.getElementById('addqty-qty-val').value) || 0;
+  if (added <= 0) { alert('Inserisci una quantità valida.'); return; }
+  it.totalQty = round2(it.totalQty + added);
+  save();
+  closeModal('modal-addqty');
+  renderItems();
+}
+
+// ─── KEYBOARD ────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['modal-add','modal-edit','modal-consume','modal-addqty'].forEach(id => closeModal(id));
+  }
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+rebuildLists();
+populateSelects();
+load();
+renderItems();
+</script>
+</body>
+</html>

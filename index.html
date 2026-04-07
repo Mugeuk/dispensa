@@ -264,7 +264,7 @@ label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px
       </div>
     </div>
     <div class="version-badge" style="display:flex;flex-direction:column;gap:6px">
-      <div>v1.5 · dati salvati localmente</div>
+      <div>v1.6 · dati salvati localmente</div>
       <button class="btn btn-sm" onclick="exportData()" style="width:100%;justify-content:center">⬇ Esporta backup</button>
       <button class="btn btn-sm" onclick="document.getElementById('import-input').click()" style="width:100%;justify-content:center">⬆ Importa backup</button>
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)">
@@ -331,6 +331,23 @@ label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px
       </div>
     </div>
 
+    <div class="form-section">
+      <div class="form-section-title">Soglia scorta minima</div>
+      <div class="consume-toggle" style="margin-bottom:12px">
+        <button id="a-thr-mode-pkg" class="active" onclick="setThrMode('a','pkg')">Per confezioni</button>
+        <button id="a-thr-mode-qty" onclick="setThrMode('a','qty')">Per quantità</button>
+      </div>
+      <div id="a-thr-pkg-row" class="form-row" style="margin-bottom:0">
+        <label id="a-thr-pkg-label">Numero confezioni minimo (opz.)</label>
+        <input id="a-thr-pkg" type="number" min="0" step="0.01" placeholder="es. 3 — lascia vuoto per default">
+      </div>
+      <div id="a-thr-qty-row" class="form-row" style="margin-bottom:0;display:none">
+        <label id="a-thr-qty-label">Quantità minima (opz.)</label>
+        <input id="a-thr-qty" type="number" min="0" step="0.01" placeholder="es. 500 — lascia vuoto per default">
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">Se vuoto, l'articolo viene segnalato quando scende sotto 1 confezione.</div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-add')">Annulla</button>
       <button class="btn btn-primary" onclick="saveAdd()">Salva articolo</button>
@@ -376,6 +393,23 @@ label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px
       <div id="e-qty-warn" class="alert alert-warn" style="display:none;margin-top:12px">
         Modificando la quantità per confezione, il totale verrà ricalcolato proporzionalmente.
       </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Soglia scorta minima</div>
+      <div class="consume-toggle" style="margin-bottom:12px">
+        <button id="e-thr-mode-pkg" class="active" onclick="setThrMode('e','pkg')">Per confezioni</button>
+        <button id="e-thr-mode-qty" onclick="setThrMode('e','qty')">Per quantità</button>
+      </div>
+      <div id="e-thr-pkg-row" class="form-row" style="margin-bottom:0">
+        <label id="e-thr-pkg-label">Numero confezioni minimo (opz.)</label>
+        <input id="e-thr-pkg" type="number" min="0" step="0.01" placeholder="es. 3 — lascia vuoto per default">
+      </div>
+      <div id="e-thr-qty-row" class="form-row" style="margin-bottom:0;display:none">
+        <label id="e-thr-qty-label">Quantità minima (opz.)</label>
+        <input id="e-thr-qty" type="number" min="0" step="0.01" placeholder="es. 500 — lascia vuoto per default">
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">Se vuoto, l'articolo viene segnalato quando scende sotto 1 confezione.</div>
     </div>
 
     <div class="modal-footer">
@@ -518,6 +552,9 @@ function migrate(arr) {
     if (!it.brand) it.brand = '';
     if (!it.category) it.category = 'Altro';
     if (!it.insertedAt) it.insertedAt = Date.now();
+    if (!it.thrMode) it.thrMode = 'pkg';
+    if (it.thrPkg === undefined) it.thrPkg = 0;
+    if (it.thrQty === undefined) it.thrQty = 0;
     return it;
   });
 }
@@ -638,7 +675,12 @@ function pkgCount(it) {
   return it.totalQty / it.qtyPer;
 }
 
-function isLow(it) { return it.totalQty > 0 && it.totalQty < it.qtyPer; }
+function getLowThreshold(it) {
+  if (it.thrMode === 'qty' && it.thrQty > 0) return it.thrQty;
+  if (it.thrPkg > 0) return it.thrPkg * it.qtyPer;
+  return it.qtyPer; // default: 1 confezione
+}
+function isLow(it) { return it.totalQty > 0 && it.totalQty < getLowThreshold(it); }
 function isEmpty(it) { return it.totalQty <= 0; }
 
 // ─── POPULATE SELECTS ────────────────────────────────────────────────────
@@ -658,6 +700,7 @@ function populateSelects() {
 
   document.getElementById('a-unit').addEventListener('change', function() {
     document.getElementById('a-loose-label').textContent = `Quantità sfusa aggiuntiva (${this.value})`;
+    document.getElementById('a-thr-qty-label').textContent = `Quantità minima (${this.value}) (opz.)`;
   });
 
   document.getElementById('e-qty-per').addEventListener('input', function() {
@@ -813,9 +856,13 @@ function saveAdd() {
   if (!name) { alert('Inserisci il nome del prodotto.'); return; }
   if (qtyPer <= 0) { alert('Inserisci la quantità per confezione.'); return; }
 
+  const thrMode = document.getElementById('a-thr-mode-pkg').classList.contains('active') ? 'pkg' : 'qty';
+  const thrPkg = parseFloat(document.getElementById('a-thr-pkg').value) || 0;
+  const thrQty = parseFloat(document.getElementById('a-thr-qty').value) || 0;
   items.push({
     id: uid(), name, brand, category: cat, pkg, qtyPer, unit,
-    totalQty: count * qtyPer + loose, notes, insertedAt: Date.now()
+    totalQty: count * qtyPer + loose, notes, insertedAt: Date.now(),
+    thrMode, thrPkg, thrQty
   });
   save();
   closeModal('modal-add');
@@ -835,6 +882,10 @@ function openEdit(id) {
   document.getElementById('e-pkg').value     = it.pkg || 'scatola';
   document.getElementById('e-notes').value   = it.notes || '';
   document.getElementById('e-qty-warn').style.display = 'none';
+  const thrMode = it.thrMode || 'pkg';
+  setThrMode('e', thrMode);
+  document.getElementById('e-thr-pkg').value = it.thrPkg > 0 ? it.thrPkg : '';
+  document.getElementById('e-thr-qty').value = it.thrQty > 0 ? it.thrQty : '';
   openModal('modal-edit');
 }
 

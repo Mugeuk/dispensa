@@ -267,7 +267,7 @@ label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px
       </div>
     </div>
     <div class="version-badge" style="display:flex;flex-direction:column;gap:6px">
-      <div>v2.1 · dati salvati localmente</div>
+      <div>v2.2 · dati salvati localmente</div>
       <button class="btn btn-sm" onclick="exportData()" style="width:100%;justify-content:center">⬇ Esporta backup</button>
       <button class="btn btn-sm" onclick="document.getElementById('import-input').click()" style="width:100%;justify-content:center">⬆ Importa backup</button>
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)">
@@ -556,6 +556,7 @@ function migrate(arr) {
     if (!it.category) it.category = 'Altro';
     if (!it.insertedAt) it.insertedAt = Date.now();
     if (it.archived === undefined) it.archived = false;
+    if (it.lastConsumedAt === undefined) it.lastConsumedAt = null;
     if (!it.thrMode) it.thrMode = 'pkg';
     if (it.thrPkg === undefined) it.thrPkg = 0;
     if (it.thrQty === undefined) it.thrQty = 0;
@@ -778,6 +779,19 @@ function setStato(val) {
   renderItems();
 }
 
+function fmtLastConsumed(ts) {
+  if (!ts) return '';
+  const now = new Date();
+  const d = new Date(ts);
+  const hm = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const todayStr = now.toDateString();
+  const dStr = d.toDateString();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  if (dStr === todayStr) return 'oggi alle ' + hm;
+  if (dStr === yesterday.toDateString()) return 'ieri alle ' + hm;
+  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' alle ' + hm;
+}
+
 function renderItems() {
   const filtered = getFiltered();
   const statoFiltro = document.getElementById('f-stato').value;
@@ -825,6 +839,7 @@ function renderItems() {
       </div>
       ${it.archived ? '<div style="margin-bottom:6px"><span class="chip chip-archived">Archiviato</span></div>' : ''}
       ${it.notes ? `<div class="item-note">${esc(it.notes)}</div>` : ''}
+      ${it.lastConsumedAt && !it.archived ? `<div style="font-size:11px;color:var(--text3);margin-bottom:6px">↓ ${fmtLastConsumed(it.lastConsumedAt)}</div>` : ''}
       ${!it.archived ? `<div class="item-footer">
         <button class="btn btn-sm" onclick="openAddQty('${it.id}')">+ Aggiungi</button>
         <button class="btn btn-sm" onclick="openConsume('${it.id}')" ${empty?'disabled':''}>– Consuma</button>
@@ -1020,6 +1035,7 @@ function saveConsume() {
   if (consumed <= 0) { alert('Inserisci una quantità valida.'); return; }
   if (consumed > it.totalQty) { alert('Non hai abbastanza scorte!'); return; }
   it.totalQty = round2(it.totalQty - consumed);
+  it.lastConsumedAt = Date.now();
   save();
   closeModal('modal-consume');
   renderItems();
